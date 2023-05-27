@@ -100,14 +100,12 @@ app.post('/api/go/:path', async (req, res) => {
         stat.data.push({key:rString,ts:nowsec})
         resa =await db.collection('stats').set(path,stat)
         res.json({ok:true,data:go.redir}).end()
+        return
     }else{
         res.json({ok:false,err:'no such key in link'}).end()
+        return
     }
-  const key = req.params.key
-  console.log(`from collection: ${col} get key: ${key} with params ${JSON.stringify(req.params)}`)
-  const item = await db.collection(col).get(key)
-  console.log(JSON.stringify(item, null, 2))
-  res.json(item).end()
+
 })
 
 
