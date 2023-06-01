@@ -75,14 +75,17 @@
             // 处理提交逻辑
             if(verifiedtoken==''){
                 alert('验证码未提交')
+                mtcaptcha.resetUI()
                 return
             }
             if(fileContentElement.value=''){
                 alert('什么也没填')
+                mtcaptcha.resetUI()
                 return
             }
             if(fileContentElement.value.length>128*1024){
                 alert('过长,最大128')
+                mtcaptcha.resetUI()
                 return
             }
             const data = { content: fileContentElement.value,'mtcaptcha-verifiedtoken':verifiedtoken };
