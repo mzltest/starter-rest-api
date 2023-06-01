@@ -64,7 +64,7 @@ if (ctjson.success!=true){
   })
 
   await s3.putObject({
-    Body: JSON.stringify({key:"value"}),
+    Body: req.body.content,
     Bucket: "cyclic-doubtful-beret-frog-us-west-1",
     Key: `tmp/${postid}.html`,
 }).promise()
