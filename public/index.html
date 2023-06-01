@@ -33,7 +33,7 @@
     <input type="file" id="file-input" style="display: none;" accept=".html" onchange="handleFileSelect(event)">
     <textarea id="file-content" rows="10" style="width:100%" maxlength="131072"></textarea>
     <div class="mtcaptcha"></div>
-    <button id="submit-button" disabled onclick="submitPage()">提交</button>
+ 
 
     <script>
         var fileContentElement = document.getElementById("file-content");
@@ -77,6 +77,14 @@
                 alert('验证码未提交')
                 return
             }
+            if(fileContentElement.value=''){
+                alert('什么也没填')
+                return
+            }
+            if(fileContentElement.value.length>128*1024){
+                alert('过长,最大128')
+                return
+            }
             const data = { content: fileContentElement.value,'mtcaptcha-verifiedtoken':verifiedtoken };
 
 fetch('/api/create', {
@@ -104,6 +112,7 @@ alert(data.data)
         var mt_verifiedcb = function(eventObj) {
             submitButton.disabled=false
             verifiedtoken=eventObj.verifiedToken
+            submitPage()
       
    }
    var mt_verifyexpiredcb = function(eventObj) {

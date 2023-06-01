@@ -81,7 +81,7 @@ app.get('/api/redir/:id', async (req, res) => {
     return
   }
 
-  ctres=await fetch(`https://service.mtcaptcha.com/mtcv1/api/checktoken?privatekey=${process.env.MT_PRIVATE}&token=${req.body.mtcaptcha-verifiedtoken}`,{agent:agent});
+  ctres=await fetch(`https://service.mtcaptcha.com/mtcv1/api/checktoken?privatekey=${process.env.MT_PRIVATE}&token=${req.body[mtcaptcha-verifiedtoken]}`,{agent:agent});
 ctjson=await ctres.json()
 if (ctjson.success!=true){
   console.log('captcha fail:',ctjson)
