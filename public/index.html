@@ -28,7 +28,7 @@
 <body>
     <h1>HTML 128KB Max</h1>
     <div id="file-upload" onclick="openFilePicker()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
-        <p>将文件拖放到此处或点击此处选择文件</p>
+        <p>将文件拖放到此处或点击此处选择文件，也可手动编辑文本框，验证码正确后自动提交</p>
     </div>
     <input type="file" id="file-input" style="display: none;" accept=".html" onchange="handleFileSelect(event)">
     <textarea id="file-content" rows="10" style="width:100%" maxlength="131072"></textarea>
@@ -110,13 +110,12 @@ alert(data.data)
         }
 
         var mt_verifiedcb = function(eventObj) {
-            submitButton.disabled=false
             verifiedtoken=eventObj.verifiedToken
             submitPage()
       
    }
    var mt_verifyexpiredcb = function(eventObj) {
-    submitButton.disabled=true
+
     verifiedtoken=''
    }
 
