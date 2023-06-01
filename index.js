@@ -1,6 +1,16 @@
 const express = require('express')
 const app = express()
 const db = require('@cyclic.sh/dynamodb')
+const nanoid = require('nanoid/async')
+const xss = require('xss');
+const crypto = require('crypto')
+const AWS = require("aws-sdk");
+let fetch = require('node-fetch')
+const https = require("https");
+const agent = new https.Agent({
+  rejectUnauthorized: false
+})
+const s3 = new AWS.S3()
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -8,108 +18,128 @@ app.use(express.urlencoded({ extended: true }))
 // #############################################################################
 // This configures static hosting for files in /public that have the extensions
 // listed in the array.
-// var options = {
-//   dotfiles: 'ignore',
-//   etag: false,
-//   extensions: ['htm', 'html','css','js','ico','jpg','jpeg','png','svg'],
-//   index: ['index.html'],
-//   maxAge: '1m',
-//   redirect: false
-// }
-// app.use(express.static('public', options))
+var options = {
+  dotfiles: 'ignore',
+  etag: false,
+  extensions: ['htm', 'html','css','js','ico','jpg','jpeg','png','svg'],
+  index: ['index.html'],
+  maxAge: '30d',
+  redirect: false
+}
+app.use(express.static('public', options))
 // #############################################################################
-
-// create redir
+// xssoptions = {
+//   whiteList: {
+//     b: [],
+//     i: [],
+//     u: [],
+//     s: [],
+//     em: [],
+//     br:[]
+//   }
+// };
+// 新建
 app.post('/api/create', async (req, res) => {
   console.log(req.body)
+  if(req.body.content.length>128*1024){
 
- 
-  
-  item = await db.collection('links').get(req.body.path)
-  if (item){
-    if (item.password!=req.body.password){
-      res.json({ok:false,err:'Existing link but wrong password'}).end()
-      return
+    res.json({ok:false,err:'too long,max 128K units'}).end()
+    return
   }
+  if (!('mtcaptcha-verifiedtoken'in req.body)){
+    res.json({ok:false,err:'expecting mtcaptcha-verifiedtoken'}).end()
+    return
   }
- 
-  resdata = await db.collection('links').set(body.path,{redir:body.url,password:body.password,ttl: Math.floor(Date.now() / 1000) + 3600*6})
-  resdata = await db.collection('stats').set(body.path,{data:[],password:body.password,ttl: Math.floor(Date.now() / 1000) + 3600*6})
-  //return 
-
-
-  res.json({ok:true,data:resdata}).end()
-})
-
-//show stats
-app.post('/api/stat/:path', async (req, res) => {
-  console.log(req.body)
-  path = req.params.path
- 
-  
-  item = await db.collection('stats').get(path)
-  if (item){
-    if (item.password!=req.body.password){
-      res.json({ok:false,err:'Existing stat but wrong password'}).end()
-  }
-  res.json({ok:true,data:item}).end()
+ctres=await fetch(`https://service.mtcaptcha.com/mtcv1/api/checktoken?privatekey=${process.env.MT_PRIVATE}&token=${req.body.mtcaptcha-verifiedtoken}`,{agent:agent});
+ctjson=await ctres.json()
+if (ctjson.success!=true){
+  console.log('captcha fail:',ctjson)
+  res.json({ok:false,err:'captcha failed'}).end()
   return
+}
+  postid=await nanoid.nanoid(16)
+  //is captcha resp correct?we check it later
+  item = await db.collection('posts').set(postid,{
+ content: req.body.content
+  })
+
+  await s3.putObject({
+    Body: JSON.stringify({key:"value"}),
+    Bucket: "cyclic-doubtful-beret-frog-us-west-1",
+    Key: `tmp/${postid}.html`,
+}).promise()
+
+
+  res.json({ok:true,data:postid}).end()
+})
+
+// 
+app.get('/api/redir/:id', async (req, res) => {
+  postid=req.params.id
+  if (!('mtcaptcha-verifiedtoken'in req.query.mtcaptcha-verifiedtoken)){
+    res.json({ok:false,err:'expecting mtcaptcha-verifiedtoken'}).end()
+    return
+  }
+
+  ctres=await fetch(`https://service.mtcaptcha.com/mtcv1/api/checktoken?privatekey=${process.env.MT_PRIVATE}&token=${req.body.mtcaptcha-verifiedtoken}`,{agent:agent});
+ctjson=await ctres.json()
+if (ctjson.success!=true){
+  console.log('captcha fail:',ctjson)
+  res.json({ok:false,err:'captcha failed'}).end()
+  return
+}
+  item = await db.collection('posts').get(postid)
+  if (item){
+s3url=await s3.getSignedUrl('getObject',{
+  Bucket: "cyclic-doubtful-beret-frog-us-west-1",
+  Key: `tmp/${postid}.html`,
+  Expires:3600*6
+}).promise()
+
+res.redirect(s3url)
+return
   }
  
-
-  res.json({ok:false,err:'no such path in stat'}).end()
-
+  res.json({ok:false,data:'no such post'}).end()
   
 })
 
-//show info
-app.get('/api/info/:id', async (req, res) => {
-  id=req.params.id
-  console.log(`from collection: ${col} get key: ${key} with params ${JSON.stringify(req.params)}`)
-  const item = await db.collection('infos').get(id)
-  if(!item){
-    res.json({ok:false,err:'no such item'}).end()
-  }
-  res.json({ok:true,data:item}).end()
+app.get('/:id', async (req, res) => {
+  postid=req.params.id
+  res.send(`
+  <!DOCTYPE HTML>
+<html>	
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<!-- MTCap Code Start-->    
+  <!-- Configuration to construct the captcha widget.
+      Sitekey is a Mandatory Parameter-->
+   
+  <script>
+    var mtcaptchaConfig = {
+      "sitekey": "MTPublic-CD7kxsafx",
+  
+      "verified-callback": "mt_verifiedcb",
+     };
+   (function(){var mt_service = document.createElement('script');mt_service.async = true;mt_service.src = 'https://service.mtcaptcha.com/mtcv1/client/mtcaptcha.min.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(mt_service);
+   var mt_service2 = document.createElement('script');mt_service2.async = true;mt_service2.src = 'https://service2.mtcaptcha.com/mtcv1/client/mtcaptcha2.min.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(mt_service2);}) ();
+
+
+   var mt_verifiedcb = function(eventObj) {
+      window.location='/api/redir/${postid}?mtcaptcha-verifiedtoken='+eventObj.verifiedToken
+   }
+ </script>
+</head>
+<body>
+<p>完成验证码以访问用户提交的html文件#${postid}。访问链接有效期6小时。</p>
+      <div class="mtcaptcha"></div>
+      
+</body>
+</html>
+  `).end()
+  
 })
-
-
-function randomString(length, chars) {
-  var result = '';
-  for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
-  return result;
-}
-
-// Get a single item
-app.post('/api/go/:path', async (req, res) => {
-  rString = randomString(4, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-  path = req.params.path
-  go =await db.collection('links').get(path)
-    if (go){
-        //建一个info
-        info=await db.collection('infos').set(toString(Date.now())+rString,{'headers':req.headers,'body':req.body})
-        nowsec = Date.now() 
-        //取stat
-        stat=await db.collection('stats').get(path)
-        if(!stat){
-            stat={table:'stats',key:path,data:[],password:'Mzltest@233'}
-            console.warn(`{$path} didnt found on stat,so we created a new one.that shouldnt happen.`)
-        }
- 
-        console.log(stat.data)
-        stat.data.push({key:rString,ts:nowsec})
-        resa =await db.collection('stats').set(path,stat)
-        res.json({ok:true,data:go.redir}).end()
-        return
-    }else{
-        res.json({ok:false,err:'no such key in link'}).end()
-        return
-    }
-
-})
-
-
-
 // Start the server
 const port = process.env.PORT || 3000
 app.listen(port, () => {

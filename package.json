@@ -15,7 +15,11 @@
   },
   "dependencies": {
     "@cyclic.sh/dynamodb": "^0.0.33",
+    "aws-sdk": "^2.1388.0",
     "env-cmd": "^10.1.0",
-    "express": "^4.18.1"
+    "express": "^4.18.1",
+    "nanoid": "^3.3.6",
+    "node-fetch": "^2.6.11",
+    "xss": "^1.0.14"
   }
 }

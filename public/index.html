@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>htmlhost</title>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <style>
+        #file-upload {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+    </style>
+<!-- Configuration to construct the captcha widget.
+      Sitekey is a Mandatory Parameter-->
+      <script>
+        var mtcaptchaConfig = {
+          "verified-callback": "mt_verifiedcb",
+          "verifyexpired-callback": "mt_verifyexpiredcb",
+
+         };
+       (function(){var mt_service = document.createElement('script');mt_service.async = true;mt_service.src = 'https://service.mtcaptcha.com/mtcv1/client/mtcaptcha.min.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(mt_service);
+       var mt_service2 = document.createElement('script');mt_service2.async = true;mt_service2.src = 'https://service2.mtcaptcha.com/mtcv1/client/mtcaptcha2.min.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(mt_service2);}) ();
+       </script>
+</head>
+<body>
+    <h1>HTML 128KB Max</h1>
+    <div id="file-upload" onclick="openFilePicker()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+        <p>将文件拖放到此处或点击此处选择文件</p>
+    </div>
+    <input type="file" id="file-input" style="display: none;" accept=".html" onchange="handleFileSelect(event)">
+    <textarea id="file-content" rows="10" style="width:100%" maxlength="131072"></textarea>
+    <div id="mtcaptcha"></div>
+    <button id="submit-button" disabled onclick="submitPage()">提交</button>
+
+    <script>
+        var fileContentElement = document.getElementById("file-content");
+        var submitButton = document.getElementById("submit-button");
+        var fileInput = document.getElementById("file-input");
+        var verifiedtoken=''
+        function openFilePicker() {
+            fileInput.click();
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "copy";
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            var file = event.dataTransfer.files[0];
+            readFile(file);
+        }
+
+        function handleFileSelect(event) {
+            var file = event.target.files[0];
+            readFile(file);
+        }
+
+        function readFile(file) {
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                var contents = event.target.result;
+                fileContentElement.value = contents;
+            };
+            reader.readAsText(file);
+        }
+
+
+
+        function submitPage() {
+            // 处理提交逻辑
+            if(verifiedtoken==''){
+                alert('验证码未提交')
+                return
+            }
+            const data = { content: fileContentElement.value,'mtcaptcha-verifiedtoken':verifiedtoken };
+
+fetch('/api/create', {
+  method: 'POST', // or 'PUT'
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(data),
+})
+.then(response => response.json())
+.then(data => {
+  if(data.ok==true){
+alert(data.data)
+  }
+  else{
+    alert(data.err)
+  }
+})
+.catch((error) => {
+  console.error('Error:', error);
+});
+
+        }
+
+        var mt_verifiedcb = function(eventObj) {
+            submitButton.disabled=false
+            verifiedtoken==eventObj.verifiedToken
+      
+   }
+   var mt_verifyexpiredcb = function(eventObj) {
+    submitButton.disabled=true
+    verifiedtoken=''
+   }
+
+    </script>
+</body>
+</html>
