@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }))
 // listed in the array.
 var options = {
   dotfiles: 'ignore',
-  etag: false,
+  etag: true,
   extensions: ['htm', 'html','css','js','ico','jpg','jpeg','png','svg'],
   index: ['index.html'],
   maxAge: '30d',
