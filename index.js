@@ -90,11 +90,11 @@ if (ctjson.success!=true){
 }
   item = await db.collection('posts').get(postid)
   if (item){
-s3url=await s3.getSignedUrl('getObject',{
+s3url=s3.getSignedUrl('getObject',{
   Bucket: "cyclic-doubtful-beret-frog-us-west-1",
   Key: `tmp/${postid}.html`,
   Expires:3600*6
-}).promise()
+})
 
 res.redirect(s3url)
 return

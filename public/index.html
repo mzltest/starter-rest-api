@@ -101,6 +101,7 @@ fetch('/api/create', {
 .then(data => {
   if(data.ok==true){
 alert(data.data)
+window.location='/'+data.data
   }
   else{
     alert(data.err)
