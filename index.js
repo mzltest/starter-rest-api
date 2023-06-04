@@ -118,7 +118,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
   }
   chal=chal.props
   console.log(answer)
-  if (chal.ttl> (Math.floor(Date.now() / 1000) + 300)){
+  if (chal.ttl> (Math.floor(Date.now() / 1000))){
     res.json({ok:false,err:'challenge expired',reload:true}).end()
     return
   }
@@ -149,6 +149,11 @@ app.get('/api/check/:id', async (req, res) => {
     return
   }
   chal=chal.props
+  if (chal.ttl> (Math.floor(Date.now() / 1000))){
+    res.json({ok:false,err:'challenge expired'}).end()
+    return
+  }
+  await db.collection('solved').delete(cid)
   res.json({ok:true,data:chal,passed:chal.passed}).end()
   
 })
