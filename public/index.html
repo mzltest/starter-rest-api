@@ -56,8 +56,9 @@
 <body>
   <h1>选择四个内容最相似的图片</h1>
   <div class="container"></div>
+  <div id="submitchall">
   <input type="text" id="selectedImages" readonly>
-  <button onclick="submit()" id="submitchall" class="confirm-button">提交</button>
+  <button onclick="submit()" class="confirm-button">提交</button></div>
 
   <script>
     var chalId=''//challengeID
@@ -134,6 +135,7 @@
         if (data.ok && data.data ) {
           document.querySelector('.container').innerHTML=`<b>在5分钟内使用此ID</b><br><input type="text" value="${data.data}"></input>`
           document.getElementById('submitchall').innerHTML=''
+        }
         else{
           alert(data.err)
           if(data.reload==true){
