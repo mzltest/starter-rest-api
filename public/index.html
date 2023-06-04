@@ -2,6 +2,8 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>九宫格图片验证码</title>
   <style>
     .container {
@@ -26,11 +28,11 @@
     .image.selected::after {
       content: '\2713';
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 100px;
+      right: 100px;
       color: white;
       font-size: 24px;
-      background-color: rgba(0, 0, 0, 0.7);
+      background-color: rgba(30, 200, 50, 0.7);
       padding: 4px;
       border-radius: 50%;
     }
@@ -39,8 +41,10 @@
 <body>
   <div class="container"></div>
   <input type="text" id="selectedImages" readonly>
+  <button onclick="submit()">提交</button>
 
   <script>
+    var chalId=''//challengeID
     function createImageElement(base64, id) {
       var container = document.querySelector('.container');
 
@@ -84,13 +88,15 @@
       selectedImagesInput.value = updatedIds.join('|');
     }
 
+    function getchal(){
     // 发起请求获取图片数据
     fetch('/api/create')
       .then(function(response) {
         return response.json();
       })
       .then(function(data) {
-        if (data.ok && data.data && data.data.length === 9) {
+        if (data.ok && data.data ) {
+          chalId=data.id
           data.data.forEach(function(item) {
             createImageElement(item.base64, item.id);
           });
@@ -98,7 +104,30 @@
       })
       .catch(function(error) {
         console.log('Error:', error);
+      })
+    }
+      function submit(){
+        fetch(`/api/verify/${encodeURIComponent(chalId)}/${encodeURIComponent(document.getElementById('selectedImages').value)}`)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        if (data.ok && data.data ) {
+  alert(data.data)
+        }
+        else{
+          alert(data.err)
+          if(data.reload==true){
+            getchal()
+          }
+        }
+      })
+      .catch(function(error) {
+        console.log('Error:', error);
       });
+      }
+
+      getchal()
   </script>
 </body>
 </html>
