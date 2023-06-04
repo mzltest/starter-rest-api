@@ -133,7 +133,8 @@
       })
       .then(function(data) {
         if (data.ok && data.data ) {
-          document.querySelector('.container').innerHTML=`<b>在5分钟内使用此ID</b><br><input type="text" value="${data.data}"></input>`
+          navigator.clipboard.writeText(data.data);
+          document.querySelector('.container').innerHTML=`<b>在5分钟内使用此ID</b><br><input type="text" value="${data.data}" readonly="true"></input>`
           document.getElementById('submitchall').innerHTML=''
         }
         else{
