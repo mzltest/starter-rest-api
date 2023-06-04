@@ -86,7 +86,7 @@ app.get('/api/create', async (req, res) => {
   console.log(pendimgs)
   for (im of pendimgs){
     
-    tempim=await sharp(`./cpb/${im}`).blur(getRandomInt(1,10)).resize({ width: 256 }).toBuffer()
+    tempim=await sharp(`./cpb/${im}`).blur(getRandomInt(1,5)).resize({ width: 256 }).toBuffer()
     nid=await nanoid.nanoid(6)
     imgs.push({'base64':tempim.toString('base64'),id:nid})
 
@@ -130,10 +130,11 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
 
       return
     }
+    else{
     await db.collection('challenges').delete(cid)
     res.json({ok:false,err:'incorrect answer',reload:true}).end()
 
-    return
+    return}
   }
 
   chal.passed=true
