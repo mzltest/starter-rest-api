@@ -86,7 +86,7 @@ app.get('/api/create', async (req, res) => {
   console.log(pendimgs)
   for (im of pendimgs){
     
-    tempim=await sharp(`./cpb/${im}`).blur(getRandomInt(1,5)).resize({ width: 256 }).toBuffer()
+    tempim=await sharp(`./cpb/${im}`).blur(getRandomInt(1,3)).resize({ width: 256 }).toBuffer()
     nid=await nanoid.nanoid(6)
     imgs.push({'base64':tempim.toString('base64'),id:nid})
 
@@ -110,10 +110,10 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
   answer=req.params.answer
   answer=answer.split('|')
   answer=answer.sort()
-  chal=await db.collection('challenges').get(cid)
+  chal=await db.collection('challenges').get(cid).props
   console.log(chal)
   if (!chal){
-    res.json({ok:false,err:'no such challenge',reload:false}).end()
+    res.json({ok:false,err:'no such challenge',reload:true}).end()
     return
   }
   if (chal.ttl> (Math.floor(Date.now() / 1000) + 300)){
