@@ -111,11 +111,13 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
   answer=answer.split('|')
   answer=answer.sort()
   chal=await db.collection('challenges').get(cid)
-  console.log(chal)
+
   if (!chal){
     res.json({ok:false,err:'no such challenge',reload:true}).end()
     return
   }
+  chal=chal.props
+  console.log(chal)
   if (chal.ttl> (Math.floor(Date.now() / 1000) + 300)){
     res.json({ok:false,err:'challenge expired',reload:true}).end()
     return
