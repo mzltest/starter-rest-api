@@ -99,7 +99,7 @@ app.get('/api/create', async (req, res) => {
   console.log(answer)
   imgs=shuffle(imgs)
   cid=await nanoid.nanoid(16)
-  await db.collection('challenges').set(cid,{answer:answer, ttl: Math.floor(Date.now() / 1000) + 300,passed:false})
+  await db.collection('challenges').set(cid,{answer:answer, ttl: Math.floor(Date.now() / 1000) + 300,passed:false,attempts:0})
   res.json({ok:true,data:imgs,id:cid}).end()
   return
 })
@@ -125,6 +125,14 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
 
   
   if(chal.answer!=answer){
+    if(chal.attempts<2){
+      console.log(chal.answer)
+      chal.attempts+=1
+      await db.collection('challenges').set(cid,chal)
+      res.json({ok:false,err:'incorrect answer',reload:true}).end()
+  
+      return
+    }
     console.log(chal.answer)
     await db.collection('challenges').delete(cid)
     res.json({ok:false,err:'incorrect answer',reload:true}).end()
