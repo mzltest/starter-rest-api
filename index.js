@@ -108,6 +108,7 @@ app.get('/api/create', async (req, res) => {
 app.get('/api/verify/:id/:answer', async (req, res) => {
   cid=req.params.id
   answer=req.params.answer
+  answer=answer.split('|')
   chal=await db.collection('challenges').get(cid)
   if (!chal){
     res.json({ok:false,err:'no such challenge',reload:false}).end()
@@ -118,7 +119,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
     return
   }
   if (chal.src!=req.ip){
-    res.json({ok:false,err:'ip didnt match'}).end()
+    res.json({ok:false,err:'ip didnt match'+`${chal.src}!=${req.ip}`,reload:false}).end()
     return
   }
   answer=answer.sort()
