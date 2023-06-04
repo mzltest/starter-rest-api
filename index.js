@@ -73,14 +73,13 @@ app.get('/api/create', async (req, res) => {
     rndimg=[a1,a2,a3].join('-')
     pendimgs.push(allimgs[rndimg][getRandomInt(0,allimgs[rndimg].length)])
   }
+  
   for (im of pendimgs){
-    tempim=await sharp(`./cpb/${im}`).resize({ width: 256 }).convolve({
-      width: 3,
-      height: 3,
-      kernel: Array(9).fill(Math.random()-1)
-    }).toBuffer()
+    
+    tempim=await sharp(`./cpb/${im}`).resize({ width: 256 }).toBuffer()
     nid=await nanoid.nanoid(6)
     imgs.push({'base64':tempim.toString('base64'),id:nid})
+
   }
   answer=[]
   for (i=0;i<4;i++){
