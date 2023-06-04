@@ -86,7 +86,7 @@ app.get('/api/create', async (req, res) => {
     answer.push(imgs[i].id)
   }
   answer=answer.sort()
-  imgs=getRandomArrayElements(imgs,9)
+  imgs=imgs.sort(() => Math.random() - 0.5)
   cid=await nanoid.nanoid(16)
   await db.collection('challenges').set(cid,{answer:answer,src:req.ip, ttl: Math.floor(Date.now() / 1000) + 300,passed:false,attempt:0})
   res.json({ok:true,data:imgs,id:cid}).end()
