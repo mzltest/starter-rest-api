@@ -125,14 +125,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
 
   
   if(chal.answer!=answer){
-    if(chal.attempts<2){
-      console.log(chal.answer)
-      chal.attempts+=1
-      await db.collection('challenges').set(cid,chal)
-      res.json({ok:false,err:'incorrect answer',reload:true}).end()
-  
-      return
-    }
+
     console.log(chal.answer)
     await db.collection('challenges').delete(cid)
     res.json({ok:false,err:'incorrect answer',reload:true}).end()
@@ -142,7 +135,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
 
   chal.passed=true
   chal.ttl=Math.floor(Date.now() / 1000) + 300
-  await db.collection('challenges').set(cid,chal)
+  await db.collection('solved').set(cid,chal)
   res.json({ok:true,data:cid}).end()
   
 })
@@ -150,7 +143,12 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
 
 app.get('/api/check/:id', async (req, res) => {
   cid=req.params.id
-  chal=await db.collection('challenges').get(cid)
+  chal=await db.collection('solved').get(cid)
+  if(!chal){
+    res.json({ok:false,err:'no such challenge in solved'}).end()
+    return
+  }
+  chal=chal.props
   res.json({ok:true,data:chal,passed:chal.passed}).end()
   
 })
