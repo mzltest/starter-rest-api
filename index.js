@@ -43,6 +43,16 @@ function getRandomArrayElements(arr, count) {
   }
   return shuffled.slice(min);
 }
+function shuffle(array) {
+	var j, x, i;
+	for (i = array.length; i; i--) {
+		j = Math.floor(Math.random() * i);
+		x = array[i - 1];
+		array[i - 1] = array[j];
+		array[j] = x;
+	}
+	return array;
+}
 
 // a b c in [0,3)
 // 新建
@@ -76,7 +86,7 @@ app.get('/api/create', async (req, res) => {
   console.log(pendimgs)
   for (im of pendimgs){
     
-    tempim=await sharp(`./cpb/${im}`).blur(Math.random()*10+0.3).resize({ width: 256 }).toBuffer()
+    tempim=await sharp(`./cpb/${im}`).blur(Math.random()*20+0.3).resize({ width: 256 }).toBuffer()
     nid=await nanoid.nanoid(6)
     imgs.push({'base64':tempim.toString('base64'),id:nid})
 
@@ -87,7 +97,7 @@ app.get('/api/create', async (req, res) => {
   }
   answer=answer.sort()
   console.log(answer)
-  imgs=imgs.sort(() => Math.random() - 0.5)
+  imgs=shuffle(imgs)
   cid=await nanoid.nanoid(16)
   await db.collection('challenges').set(cid,{answer:answer,src:req.ip, ttl: Math.floor(Date.now() / 1000) + 300,passed:false,attempt:0})
   res.json({ok:true,data:imgs,id:cid}).end()
