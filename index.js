@@ -110,8 +110,8 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
   answer=req.params.answer
   answer=answer.split('|')
   answer=answer.sort()
-  chal=await db.collection('challenges').get(cid).props
-  console.log(chal)
+  chal=await db.collection('challenges').get(cid)
+  console.log(answer)
   if (!chal){
     res.json({ok:false,err:'no such challenge',reload:true}).end()
     return
