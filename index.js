@@ -132,9 +132,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
     return
   }
 
-  chal.passed=true
-  chal.ttl=Math.floor(Date.now() / 1000) + 300
-  await db.collection('solved').set(cid,chal)
+  await db.collection('solved').set(cid,{passed:true,ttl:(Math.floor(Date.now() / 1000) + 300)})
   await db.collection('challenges').delete(cid)
   res.json({ok:true,data:cid}).end()
   
