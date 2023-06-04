@@ -1,76 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>九宫格图片验证码展示</title>
+  <meta charset="UTF-8">
+  <title>九宫格图片验证码</title>
   <style>
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     .image {
       position: relative;
-      width: 100%;
-      padding-bottom: 100%;
-      background-size: cover;
-      background-repeat: no-repeat;
+      width: calc(33.33% - 10px);
+      margin: 5px;
       cursor: pointer;
     }
 
-    .selected {
-      border: 2px solid blue;
+    .image img {
+      width: 100%;
+      height: auto;
+    }
+
+    .image.selected::after {
+      content: '\2713';
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: white;
+      font-size: 24px;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 4px;
+      border-radius: 50%;
     }
   </style>
 </head>
 <body>
-  <div class="grid" id="imageGrid"></div>
+  <div class="container"></div>
   <input type="text" id="selectedImages" readonly>
+
   <script>
-    // 发送 API 请求获取图片数据
+    function createImageElement(base64, id) {
+      var container = document.querySelector('.container');
+
+      var imageContainer = document.createElement('div');
+      imageContainer.className = 'image';
+
+      var image = document.createElement('img');
+      image.src = 'data:image/jpeg;base64,' + base64;
+
+      image.addEventListener('click', function() {
+        if (imageContainer.classList.contains('selected')) {
+          imageContainer.classList.remove('selected');
+          removeImageId(id);
+        } else {
+          imageContainer.classList.add('selected');
+          addImageId(id);
+        }
+      });
+
+      imageContainer.appendChild(image);
+      container.appendChild(imageContainer);
+    }
+
+    function addImageId(id) {
+      var selectedImagesInput = document.getElementById('selectedImages');
+      var currentValue = selectedImagesInput.value.trim();
+      if (currentValue === '') {
+        selectedImagesInput.value = id;
+      } else {
+        selectedImagesInput.value = currentValue + '|' + id;
+      }
+    }
+
+    function removeImageId(id) {
+      var selectedImagesInput = document.getElementById('selectedImages');
+      var currentValue = selectedImagesInput.value.trim();
+      var ids = currentValue.split('|');
+      var updatedIds = ids.filter(function(item) {
+        return item !== id;
+      });
+      selectedImagesInput.value = updatedIds.join('|');
+    }
+
+    // 发起请求获取图片数据
     fetch('/api/create')
-      .then(response => response.json())
-      .then(data => {
-        if (data.ok) {
-          displayImages(data.data);
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        if (data.ok && data.data && data.data.length === 9) {
+          data.data.forEach(function(item) {
+            createImageElement(item.base64, item.id);
+          });
         }
       })
-      .catch(error => {
-        console.log(error);
+      .catch(function(error) {
+        console.log('Error:', error);
       });
-
-    // 创建图片元素并展示在九宫格中
-    function displayImages(images) {
-      const imageGrid = document.getElementById('imageGrid');
-
-      images.forEach(imageData => {
-        const { base64, id } = imageData;
-        const imageElement = document.createElement('div');
-        imageElement.classList.add('image');
-        imageElement.style.backgroundImage = `url(data:image/jpeg;base64,${base64})`;
-        imageElement.dataset.id = id;
-
-        imageElement.addEventListener('click', () => {
-          toggleSelection(imageElement);
-          updateSelectedImages();
-        });
-
-        imageGrid.appendChild(imageElement);
-      });
-    }
-
-    // 标记或取消标记选定的图片
-    function toggleSelection(imageElement) {
-      imageElement.classList.toggle('selected');
-    }
-
-    // 更新选定图片的输入框
-    function updateSelectedImages() {
-      const selectedImages = Array.from(document.querySelectorAll('.image.selected'));
-      const selectedIds = selectedImages.map(image => image.dataset.id);
-      const selectedImagesInput = document.getElementById('selectedImages');
-      selectedImagesInput.value = selectedIds.join('|');
-    }
   </script>
 </body>
 </html>
