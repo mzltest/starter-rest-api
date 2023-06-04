@@ -47,7 +47,7 @@
     var chalId=''//challengeID
     function createImageElement(base64, id) {
       var container = document.querySelector('.container');
-
+      container.innerHTML=''
       var imageContainer = document.createElement('div');
       imageContainer.className = 'image';
 
@@ -89,6 +89,7 @@
     }
 
     function getchal(){
+      document.querySelector('.container').innerHTML='<h1>正载入挑战...</h1>'
     // 发起请求获取图片数据
     fetch('/api/create')
       .then(function(response) {
