@@ -99,7 +99,7 @@ app.get('/api/create', async (req, res) => {
   console.log(answer)
   imgs=shuffle(imgs)
   cid=await nanoid.nanoid(16)
-  await db.collection('challenges').set(cid,{answer:answer,src:req.ip, ttl: Math.floor(Date.now() / 1000) + 300,passed:false,attempt:0})
+  await db.collection('challenges').set(cid,{answer:answer, ttl: Math.floor(Date.now() / 1000) + 300,passed:false,attempt:0})
   res.json({ok:true,data:imgs,id:cid}).end()
   return
 })
@@ -109,7 +109,9 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
   cid=req.params.id
   answer=req.params.answer
   answer=answer.split('|')
+  answer=answer.sort()
   chal=await db.collection('challenges').get(cid)
+  console.log(chal)
   if (!chal){
     res.json({ok:false,err:'no such challenge',reload:false}).end()
     return
@@ -118,11 +120,8 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
     res.json({ok:false,err:'challenge expired',reload:true}).end()
     return
   }
-  if (chal.src!=req.ip){
-    res.json({ok:false,err:'ip didnt match'+`${chal.src}!=${req.ip}`,reload:false}).end()
-    return
-  }
-  answer=answer.sort()
+
+  
   if(chal.answer!=answer){
     if(chal.attempt<2){
       chal.attempt+=1
