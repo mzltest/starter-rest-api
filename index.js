@@ -95,7 +95,7 @@ app.get('/api/create', async (req, res) => {
   for (i=0;i<4;i++){
     answer.push(imgs[i].id)
   }
-  answer=answer.sort()
+  answer=answer.sort().join('|')
   console.log(answer)
   imgs=shuffle(imgs)
   cid=await nanoid.nanoid(16)
@@ -108,8 +108,7 @@ app.get('/api/create', async (req, res) => {
 app.get('/api/verify/:id/:answer', async (req, res) => {
   cid=req.params.id
   answer=req.params.answer
-  answer=answer.split('|')
-  answer=answer.sort()
+  answer=answer.split('|').sort().join('|')
   chal=await db.collection('challenges').get(cid)
 
   if (!chal){
@@ -136,6 +135,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
   chal.passed=true
   chal.ttl=Math.floor(Date.now() / 1000) + 300
   await db.collection('solved').set(cid,chal)
+  await db.collection('challenges').delete(cid)
   res.json({ok:true,data:cid}).end()
   
 })
