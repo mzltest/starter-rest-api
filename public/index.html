@@ -36,13 +36,28 @@
       padding: 4px;
       border-radius: 50%;
     }
+
+    .confirm-button {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  background-color: #007bff;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
   </style>
 </head>
 <body>
   <h1>选择四个内容最相似的图片</h1>
   <div class="container"></div>
   <input type="text" id="selectedImages" readonly>
-  <button onclick="submit()" id="submitchall">提交</button>
+  <button onclick="submit()" id="submitchall" class="confirm-button">提交</button>
 
   <script>
     var chalId=''//challengeID
@@ -118,8 +133,7 @@
       .then(function(data) {
         if (data.ok && data.data ) {
           document.querySelector('.container').innerHTML=`<b>在5分钟内使用此ID</b><br><input type="text" value="${data.data}"></input>`
-          document.getElementById('submitcall').disabled=true
-        }
+          document.getElementById('submitchall').innerHTML=''
         else{
           alert(data.err)
           if(data.reload==true){
