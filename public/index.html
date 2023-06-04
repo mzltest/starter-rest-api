@@ -47,7 +47,7 @@
     var chalId=''//challengeID
     function createImageElement(base64, id) {
       var container = document.querySelector('.container');
-      container.innerHTML=''
+
       var imageContainer = document.createElement('div');
       imageContainer.className = 'image';
 
@@ -98,6 +98,7 @@
       .then(function(data) {
         if (data.ok && data.data ) {
           chalId=data.id
+          container.innerHTML=''
           data.data.forEach(function(item) {
             createImageElement(item.base64, item.id);
           });
