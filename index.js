@@ -7,7 +7,6 @@ const https = require("https");
 const agent = new https.Agent({
   rejectUnauthorized: false
 })
-const s3 = new AWS.S3()
 const allimgs=require('./allimgs.json')
 const sharp = require('sharp')
 
