@@ -98,7 +98,7 @@
       .then(function(data) {
         if (data.ok && data.data ) {
           chalId=data.id
-          container.innerHTML=''
+          document.querySelector('.container').innerHTML=''
           data.data.forEach(function(item) {
             createImageElement(item.base64, item.id);
           });
