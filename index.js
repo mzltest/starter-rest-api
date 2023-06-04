@@ -123,7 +123,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
 
   
   if(chal.answer!=answer){
-
+    console.log(chal.answer)
     await db.collection('challenges').delete(cid)
     res.json({ok:false,err:'incorrect answer',reload:true}).end()
 
