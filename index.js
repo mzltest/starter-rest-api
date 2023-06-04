@@ -3,7 +3,6 @@ const app = express()
 const db = require('@cyclic.sh/dynamodb')
 const nanoid = require('nanoid/async')
 const crypto = require('crypto')
-const AWS = require("aws-sdk");
 const https = require("https");
 const agent = new https.Agent({
   rejectUnauthorized: false
@@ -75,7 +74,7 @@ app.get('/api/create', async (req, res) => {
     rndimg=[a1,a2,a3].join('-')
     pendimgs.push(allimgs[rndimg][getRandomInt(0,allimgs[rndimg].length)])
   }
-  for (im in pendimgs){
+  for (im of pendimgs){
     tempim=await sharp(`./cpb/${im}`).resize({ width: 256 }).convolve({
       width: 3,
       height: 3,
