@@ -1,128 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>htmlhost</title>
-    <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <style>
-        #file-upload {
-            border: 2px dashed #ccc;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-        }
-    </style>
-<!-- Configuration to construct the captcha widget.
-      Sitekey is a Mandatory Parameter-->
-      <script>
-        var mtcaptchaConfig = {
-            "sitekey": "MTPublic-CD7kxsafx",
-          "verified-callback": "mt_verifiedcb",
-          "verifyexpired-callback": "mt_verifyexpiredcb",
+  <title>九宫格图片验证码展示</title>
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
 
-         };
-       (function(){var mt_service = document.createElement('script');mt_service.async = true;mt_service.src = 'https://service.mtcaptcha.com/mtcv1/client/mtcaptcha.min.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(mt_service);
-       var mt_service2 = document.createElement('script');mt_service2.async = true;mt_service2.src = 'https://service2.mtcaptcha.com/mtcv1/client/mtcaptcha2.min.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(mt_service2);}) ();
-       </script>
+    .image {
+      position: relative;
+      width: 100%;
+      padding-bottom: 100%;
+      background-size: cover;
+      background-repeat: no-repeat;
+      cursor: pointer;
+    }
+
+    .selected {
+      border: 2px solid blue;
+    }
+  </style>
 </head>
 <body>
-    <h1>HTML 128KB Max</h1>
-    <div id="file-upload" onclick="openFilePicker()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
-        <p>将文件拖放到此处或点击此处选择文件，也可手动编辑文本框，验证码正确后自动提交</p>
-    </div>
-    <input type="file" id="file-input" style="display: none;" accept=".html" onchange="handleFileSelect(event)">
-    <textarea id="file-content" rows="10" style="width:100%" maxlength="131072"></textarea>
-    <div class="mtcaptcha"></div>
- 
-
-    <script>
-        var fileContentElement = document.getElementById("file-content");
-        var submitButton = document.getElementById("submit-button");
-        var fileInput = document.getElementById("file-input");
-        var verifiedtoken=''
-        function openFilePicker() {
-            fileInput.click();
+  <div class="grid" id="imageGrid"></div>
+  <input type="text" id="selectedImages" readonly>
+  <script>
+    // 发送 API 请求获取图片数据
+    fetch('/api/create')
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          displayImages(data.data);
         }
+      })
+      .catch(error => {
+        console.log(error);
+      });
 
-        function handleDragOver(event) {
-            event.preventDefault();
-            event.dataTransfer.dropEffect = "copy";
-        }
+    // 创建图片元素并展示在九宫格中
+    function displayImages(images) {
+      const imageGrid = document.getElementById('imageGrid');
 
-        function handleDrop(event) {
-            event.preventDefault();
-            var file = event.dataTransfer.files[0];
-            readFile(file);
-        }
+      images.forEach(imageData => {
+        const { base64, id } = imageData;
+        const imageElement = document.createElement('div');
+        imageElement.classList.add('image');
+        imageElement.style.backgroundImage = `url(data:image/jpeg;base64,${base64})`;
+        imageElement.dataset.id = id;
 
-        function handleFileSelect(event) {
-            var file = event.target.files[0];
-            readFile(file);
-        }
+        imageElement.addEventListener('click', () => {
+          toggleSelection(imageElement);
+          updateSelectedImages();
+        });
 
-        function readFile(file) {
-            var reader = new FileReader();
-            reader.onload = function(event) {
-                var contents = event.target.result;
-                fileContentElement.value = contents;
-            };
-            reader.readAsText(file);
-        }
+        imageGrid.appendChild(imageElement);
+      });
+    }
 
+    // 标记或取消标记选定的图片
+    function toggleSelection(imageElement) {
+      imageElement.classList.toggle('selected');
+    }
 
-
-        function submitPage() {
-            // 处理提交逻辑
-            if(verifiedtoken==''){
-                alert('验证码未提交')
-                mtcaptcha.resetUI()
-                return
-            }
-            if(fileContentElement.value.length==0){
-                alert('什么也没填')
-                mtcaptcha.resetUI()
-                return
-            }
-            if(fileContentElement.value.length>128*1024){
-                alert('过长,最大128')
-                mtcaptcha.resetUI()
-                return
-            }
-            const data = { content: fileContentElement.value,'mtcaptcha-verifiedtoken':verifiedtoken };
-
-fetch('/api/create', {
-  method: 'POST', // or 'PUT'
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(data),
-})
-.then(response => response.json())
-.then(data => {
-  if(data.ok==true){
-alert(data.data)
-window.location='/'+data.data
-  }
-  else{
-    alert(data.err)
-  }
-})
-.catch((error) => {
-  console.error('Error:', error);
-});
-
-        }
-
-        var mt_verifiedcb = function(eventObj) {
-            verifiedtoken=eventObj.verifiedToken
-            submitPage()
-      
-   }
-   var mt_verifyexpiredcb = function(eventObj) {
-
-    verifiedtoken=''
-   }
-
-    </script>
+    // 更新选定图片的输入框
+    function updateSelectedImages() {
+      const selectedImages = Array.from(document.querySelectorAll('.image.selected'));
+      const selectedIds = selectedImages.map(image => image.dataset.id);
+      const selectedImagesInput = document.getElementById('selectedImages');
+      selectedImagesInput.value = selectedIds.join('|');
+    }
+  </script>
 </body>
 </html>
