@@ -2,15 +2,15 @@ const express = require('express')
 const app = express()
 const db = require('@cyclic.sh/dynamodb')
 const nanoid = require('nanoid/async')
-const xss = require('xss');
 const crypto = require('crypto')
 const AWS = require("aws-sdk");
-let fetch = require('node-fetch')
 const https = require("https");
 const agent = new https.Agent({
   rejectUnauthorized: false
 })
 const s3 = new AWS.S3()
+const allimgs=require('./allimgs.json')
+const sharp = require('sharp')
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -27,117 +27,119 @@ var options = {
   redirect: false
 }
 app.use(express.static('public', options))
-// #############################################################################
-// xssoptions = {
-//   whiteList: {
-//     b: [],
-//     i: [],
-//     u: [],
-//     s: [],
-//     em: [],
-//     br:[]
-//   }
-// };
-// 新建
-app.post('/api/create', async (req, res) => {
-  console.log(req.body)
-  if(req.body.content.length>128*1024){
-
-    res.json({ok:false,err:'too long,max 128K units'}).end()
-    return
-  }
-  if (!('mtcaptcha-verifiedtoken'in req.body)){
-    res.json({ok:false,err:'expecting mtcaptcha-verifiedtoken'}).end()
-    return
-  }
-ctres=await fetch(`https://service.mtcaptcha.com/mtcv1/api/checktoken?privatekey=${process.env.MT_PRIVATE}&token=${req.body['mtcaptcha-verifiedtoken']}`,{agent:agent});
-ctjson=await ctres.json()
-if (ctjson.success!=true){
-  console.log('captcha fail:',ctjson)
-  res.json({ok:false,err:'captcha failed'}).end()
-  return
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min; //不含最大值，含最小值
 }
-  postid=await nanoid.nanoid(16)
-  //is captcha resp correct?we check it later
-  item = await db.collection('posts').set(postid,{
- content: req.body.content
-  })
 
-  await s3.putObject({
-    Body: req.body.content,
-    Bucket: "cyclic-doubtful-beret-frog-us-west-1",
-    Key: `tmp/${postid}.html`,
-}).promise()
+function getRandomArrayElements(arr, count) {
+  var shuffled = arr.slice(0), i = arr.length, min = i - count, temp, index;  //只是声明变量的方式, 也可以分开写
+  while (i-- > min) {
+      //console.log(i);
+      index = Math.floor((i + 1) * Math.random()); //这里的+1 是因为上面i--的操作  所以要加回来
+      temp = shuffled[index];  //即值交换
+      shuffled[index] = shuffled[i]; 
+      shuffled[i] = temp;
+      //console.log(shuffled);
+  }
+  return shuffled.slice(min);
+}
 
-
-  res.json({ok:true,data:postid}).end()
+// a b c in [0,3)
+// 新建
+app.get('/api/create', async (req, res) => {
+  imgs=[]
+  f1=getRandomInt(0,3)
+  f2=getRandomInt(0,3)
+  f3=getRandomInt(0,3)
+  reference=[f1,f2,f3].join('-')
+  pendimgs=getRandomArrayElements(allimgs[reference],4)
+  for(i=0;i<5;i++){
+    a1=getRandomInt(0,3)
+    a2=getRandomInt(0,3)
+    a3=getRandomInt(0,3)
+    if(a1==f1&&a2==f2&&a3==f3){
+      switch (a1%3){
+        case 0:
+          a2=(a2+1)%3
+          break
+        case 1:
+          a3=(a3+1)%3
+          break
+        case 2:
+          a1=(a1+1)%3
+          break
+      }
+    }
+    rndimg=[a1,a2,a3].join('-')
+    pendimgs.push(allimgs[rndimg][getRandomInt(0,allimgs[rndimg].length)])
+  }
+  for (im in pendimgs){
+    tempim=await sharp(`./cpb/${im}`).resize({ width: 256 }).convolve({
+      width: 3,
+      height: 3,
+      kernel: Array(9).fill(Math.random()-1)
+    }).toBuffer()
+    nid=await nanoid.nanoid(6)
+    imgs.push({'base64':tempim.toString('base64'),id:nid})
+  }
+  answer=[]
+  for (i=0;i<4;i++){
+    answer.push(imgs[i].id)
+  }
+  answer=answer.sort()
+  imgs=getRandomArrayElements(imgs,9)
+  cid=await nanoid.nanoid(16)
+  await db.collection('challenges').set(cid,{answer:answer,src:req.ip, ttl: Math.floor(Date.now() / 1000) + 300,passed:false,attempt:0})
+  res.json({ok:true,data:imgs,id:cid}).end()
+  return
 })
 
 // 
-app.get('/api/redir/:id', async (req, res) => {
-  postid=req.params.id
-  if (!('mtcaptcha-verifiedtoken'in req.query)){
-    res.json({ok:false,err:'expecting mtcaptcha-verifiedtoken'}).end()
+app.get('/api/verify/:id/:answer', async (req, res) => {
+  cid=req.params.id
+  answer=req.params.answer
+  chal=await db.collection('challenges').get(cid)
+  if (!chal){
+    res.json({ok:false,err:'no such challenge',reload:false}).end()
+    return
+  }
+  if (chal.ttl> (Math.floor(Date.now() / 1000) + 300)){
+    res.json({ok:false,err:'challenge expired',reload:true}).end()
+    return
+  }
+  if (chal.src!=req.ip){
+    res.json({ok:false,err:'ip didnt match'}).end()
+    return
+  }
+  answer=answer.sort()
+  if(chal.answer!=answer){
+    if(chal.attempt<2){
+      chal.attempt+=1
+      await db.collection('challenges').set(cid,chal)
+      res.json({ok:false,err:'incorrect answer',reload:false}).end()
+
+      return
+    }
+    await db.collection('challenges').delete(cid)
+    res.json({ok:false,err:'incorrect answer',reload:true}).end()
+
     return
   }
 
-  ctres=await fetch(`https://service.mtcaptcha.com/mtcv1/api/checktoken?privatekey=${process.env.MT_PRIVATE}&token=${req.query['mtcaptcha-verifiedtoken']}`,{agent:agent});
-ctjson=await ctres.json()
-if (ctjson.success!=true){
-  console.log('captcha fail:',ctjson)
-  res.json({ok:false,err:'captcha failed'}).end()
-  return
-}
-  item = await db.collection('posts').get(postid)
-  if (item){
-s3url=s3.getSignedUrl('getObject',{
-  Bucket: "cyclic-doubtful-beret-frog-us-west-1",
-  Key: `tmp/${postid}.html`,
-  Expires:3600*6
-})
-
-res.redirect(s3url)
-return
-  }
- 
-  res.json({ok:false,data:'no such post'}).end()
+  chal.passed=true
+  chal.ttl=Math.floor(Date.now() / 1000) + 300
+  await db.collection('challenges').set(cid,chal)
+  res.json({ok:true,data:cid}).end()
   
 })
 
-app.get('/:id', async (req, res) => {
-  postid=req.params.id
-  res.send(`
-  <!DOCTYPE HTML>
-<html>	
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<!-- MTCap Code Start-->    
-  <!-- Configuration to construct the captcha widget.
-      Sitekey is a Mandatory Parameter-->
-   
-  <script>
-    var mtcaptchaConfig = {
-      "sitekey": "MTPublic-CD7kxsafx",
-  
-      "verified-callback": "mt_verifiedcb",
-     };
-   (function(){var mt_service = document.createElement('script');mt_service.async = true;mt_service.src = 'https://service.mtcaptcha.com/mtcv1/client/mtcaptcha.min.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(mt_service);
-   var mt_service2 = document.createElement('script');mt_service2.async = true;mt_service2.src = 'https://service2.mtcaptcha.com/mtcv1/client/mtcaptcha2.min.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(mt_service2);}) ();
 
-
-   var mt_verifiedcb = function(eventObj) {
-      window.location='/api/redir/${postid}?mtcaptcha-verifiedtoken='+eventObj.verifiedToken
-   }
- </script>
-</head>
-<body>
-<p>完成验证码以访问用户提交的html文件#${postid}。访问链接有效期6小时。</p>
-      <div class="mtcaptcha"></div>
-      
-</body>
-</html>
-  `).end()
+app.get('/api/check/:id', async (req, res) => {
+  cid=req.params.id
+  chal=await db.collection('challenges').get(cid)
+  res.json({ok:true,data:chal,passed:chal.passed}).end()
   
 })
 // Start the server
