@@ -117,7 +117,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
     return
   }
   chal=chal.props
-  console.log(chal)
+  console.log(answer)
   if (chal.ttl> (Math.floor(Date.now() / 1000) + 300)){
     res.json({ok:false,err:'challenge expired',reload:true}).end()
     return
