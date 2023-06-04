@@ -126,6 +126,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
   if(chal.answer!=answer){
     if(chal.attempt<2){
       chal.attempt+=1
+      await db.collection('challenges').delete(cid)
       await db.collection('challenges').set(cid,chal)
       res.json({ok:false,err:'incorrect answer',reload:false}).end()
 
