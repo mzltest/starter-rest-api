@@ -56,7 +56,7 @@ function shuffle(array) {
 
 // a b c in [0,3)
 // 新建
-app.get('/api/create', async (req, res) => {
+app.get('/api/create/:state', async (req, res) => {
   imgs=[]
   f1=getRandomInt(0,3)
   f2=getRandomInt(0,3)
@@ -99,7 +99,7 @@ app.get('/api/create', async (req, res) => {
   console.log(answer)
   imgs=shuffle(imgs)
   cid=await nanoid.nanoid(24)
-  await db.collection('challenges').set(cid,{answer:answer, ttl: Math.floor(Date.now() / 1000) + 300,passed:false,attempts:0})
+  await db.collection('challenges').set(cid,{answer:answer, ttl: Math.floor(Date.now() / 1000) + 300,passed:false,state:req.params.state})
   res.json({ok:true,data:imgs,id:cid}).end()
   return
 })
@@ -132,7 +132,7 @@ app.get('/api/verify/:id/:answer', async (req, res) => {
     return
   }
 
-  await db.collection('solved').set(cid,{passed:true,ttl:(Math.floor(Date.now() / 1000) + 300),src:req.headers['x-forwarded-for']})
+  await db.collection('solved').set(cid,{passed:true,ttl:(Math.floor(Date.now() / 1000) + 300),src:req.headers['x-forwarded-for'],state:chal.state})
   await db.collection('challenges').delete(cid)
   res.json({ok:true,data:cid}).end()
   
@@ -152,7 +152,7 @@ app.get('/api/check/:id', async (req, res) => {
     return
   }
   await db.collection('solved').delete(cid)
-  res.json({ok:true,data:chal,passed:chal.passed}).end()
+  res.json({ok:true,data:chal,passed:chal.passed,state:chal.state,src:chal.src}).end()
   
 })
 // Start the server
