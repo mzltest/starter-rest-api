@@ -137,7 +137,11 @@
     function getchal(){
       document.querySelector('.container').innerHTML='<h1>正载入挑战...</h1>'
     // 发起请求获取图片数据
-    fetch(`/api/create/${encodeURIComponent(getUrlParams('state'))}`)
+    state=getUrlParams('state')
+    if (state==''){
+      state='demo-'+Math.floor(Math.random()*1000)
+    }
+    fetch(`/api/create/${encodeURIComponent(state)}`)
       .then(function(response) {
         return response.json();
       })
