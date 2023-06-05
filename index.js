@@ -155,6 +155,9 @@ app.get('/api/check/:id', async (req, res) => {
   res.json({ok:true,data:chal,passed:chal.passed,state:chal.state,src:chal.src}).end()
   
 })
+app.get('/:state', async (req, res) => {
+  res.redirect(`/?state=${req.params.state}`)  
+})
 // Start the server
 const port = process.env.PORT || 3000
 app.listen(port, () => {
