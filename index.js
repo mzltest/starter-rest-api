@@ -4,7 +4,9 @@ const db = require('@cyclic.sh/dynamodb')
 const nanoid = require('nanoid/async')
 const crypto = require('crypto')
 const https = require("https");
-const exec = require("child_process").execSync;
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
+const exec=require('child_process').execSync
 const agent = new https.Agent({
   rejectUnauthorized: false
 })
@@ -59,23 +61,37 @@ app.post('/api/html2img', async (req, res) => {
 content=req.body.content
 url=req.body.url
 usepng=req.body.png
-filename=await nanoid.nanoid(6)+(usepng?'.png':'.jpg')
-size=req.body.size
-try{
-console.log(exec(`rm -rf /tmp/.*`).toString("utf8"))
-console.log(exec(`rm -rf /tmp/*`).toString("utf8"))
-console.log(exec('cp bin/* /tmp/').toString("utf8"))
-console.log(exec('mkdir /tmp/.fonts').toString("utf8"))
-console.log(exec('cp /tmp/NotoSans-Regular.ttf /tmp/.fonts/').toString("utf8"))
-console.log(exec('fc-cache -fv /tmp/.fonts/').toString("utf8"))
-console.log(exec('chmod +x /tmp/phantomjs').toString("utf8"))
-}catch{
-  console.log('nah')}
-if (!url){
- url=`data:text/html,${content}`
+if(!url){
+  url=`data:text/html,${content}`
 }
-console.log(exec(`bin/phantomjs bin/rasterize.js "${url}" /tmp/${filename} ${size}`).toString("utf8"))
-res.sendFile(`/tmp/${filename}`)
+filename='/tmp/img-'+await nanoid.nanoid(10)+(usepng?'.png':'.jpg')
+width=req.body.width
+height=req.body.height
+try {
+  exec('rm -rf /tmp/img-*')
+  await chromium.font('bin/NotoSans-Regular.ttf')
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: ((width==height==undefined)?chromium.defaultViewport:{width:width,height:height}),
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+    ignoreHTTPSErrors: true,
+  });
+
+  const page = await browser.newPage();
+
+  await page.goto(url, { waitUntil: "networkidle0" });
+
+  console.log("Chromium:", await browser.version());
+  console.log("Page Title:", await page.title());
+  await page.screenshot({ path: filename });
+  res.sendFile(filename)
+  await page.close();
+
+  await browser.close();
+} catch (error) {
+  throw new Error(error.message);
+}
 
 })
 
