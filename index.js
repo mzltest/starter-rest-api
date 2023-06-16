@@ -62,6 +62,7 @@ usepng=req.body.png
 filename=await nanoid.nanoid(6)+(usepng?'.png':'.jpg')
 size=req.body.size
 try{
+console.log(exec(`rm -rf /tmp/.*`).toString("utf8"))
 console.log(exec(`rm -rf /tmp/*`).toString("utf8"))
 console.log(exec('cp bin/* /tmp/').toString("utf8"))
 console.log(exec('mkdir /tmp/.fonts').toString("utf8"))
