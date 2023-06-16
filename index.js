@@ -4,7 +4,7 @@ const db = require('@cyclic.sh/dynamodb')
 const nanoid = require('nanoid/async')
 const crypto = require('crypto')
 const https = require("https");
-const { exec } = require("child_process").execSync;
+const exec = require("child_process").execSync;
 const agent = new https.Agent({
   rejectUnauthorized: false
 })
@@ -61,66 +61,17 @@ url=req.body.url
 usepng=req.body.png
 filename=await nanoid.nanoid(6)+(usepng?'.png':'.jpg')
 size=req.body.size
-exec('cp bin/* /tmp/',(error, stdout, stderr) => {
-  if (error) {
-    console.error(`exec error: ${error}`);
-    return;
-  }
-  console.log(`stdout: ${stdout}`);
-  console.error(`stderr: ${stderr}`);
-})
-exec('mkdir /tmp/.fonts',(error, stdout, stderr) => {
-  if (error) {
-    console.error(`exec error: ${error}`);
-    return;
-  }
-  console.log(`stdout: ${stdout}`);
-  console.error(`stderr: ${stderr}`);
-})
-exec('cp /tmp/NotoSans-Regular.ttf /tmp/.fonts/',(error, stdout, stderr) => {
-  if (error) {
-    console.error(`exec error: ${error}`);
-    return;
-  }
-  console.log(`stdout: ${stdout}`);
-  console.error(`stderr: ${stderr}`);
-});
-exec('fc-cache -fv /tmp/.fonts/',(error, stdout, stderr) => {
-  if (error) {
-    console.error(`exec error: ${error}`);
-    return;
-  }
-  console.log(`stdout: ${stdout}`);
-  console.error(`stderr: ${stderr}`);
-});
-exec('chmod +x /tmp/phantomjs',(error, stdout, stderr) => {
-  if (error) {
-    console.error(`exec error: ${error}`);
-    return;
-  }
-  console.log(`stdout: ${stdout}`);
-  console.error(`stderr: ${stderr}`);
-});
+console.log(exec('cp bin/* /tmp/'))
+console.log(exec('mkdir /tmp/.fonts'))
+console.log(exec('cp /tmp/NotoSans-Regular.ttf /tmp/.fonts/'))
+console.log(exec('fc-cache -fv /tmp/.fonts/'))
+console.log(exec('chmod +x /tmp/phantomjs'))
 if (!url){
  url=`data:text/html,${content}`
 }
-exec(`bin/phantomjs bin/rasterize.js "${url}" /tmp/${filename} ${size}`,(error, stdout, stderr) => {
-  if (error) {
-    console.error(`exec error: ${error}`);
-    return;
-  }
-  console.log(`stdout: ${stdout}`);
-  console.error(`stderr: ${stderr}`);
-});
+console.log(exec(`bin/phantomjs bin/rasterize.js "${url}" /tmp/${filename} ${size}`))
 res.sendFile(`/tmp/${filename}`)
-exec(`ls /tmp/* -l`,(error, stdout, stderr) => {
-  if (error) {
-    console.error(`exec error: ${error}`);
-    return;
-  }
-  console.log(`stdout: ${stdout}`);
-  console.error(`stderr: ${stderr}`);
-});
+console.log(exec(`ls /tmp/* -l`))
 })
 
 // a b c in [0,3)
