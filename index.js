@@ -4,7 +4,7 @@ const db = require('@cyclic.sh/dynamodb')
 const nanoid = require('nanoid/async')
 const crypto = require('crypto')
 const https = require("https");
-const { exec } = require("child_process");
+const { exec } = require("child_process").execSync;
 const agent = new https.Agent({
   rejectUnauthorized: false
 })
