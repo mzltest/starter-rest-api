@@ -68,11 +68,11 @@ filename='/tmp/img-'+await nanoid.nanoid(10)+(usepng?'.png':'.jpg')
 width=req.body.width
 height=req.body.height
 try {
-  exec('rm -rf /tmp/*')
+  exec('rm -rf /tmp/img-*')
   await chromium.font(__dirname+'/bin/NotoSans-Regular.ttf')
   const browser = await puppeteer.launch({
     args: chromium.args,
-    defaultViewport: ((width==height==undefined)?chromium.defaultViewport:{width:width,height:height}),
+    defaultViewport: ((height==undefined||width==undefined)?chromium.defaultViewport:{width:width,height:height}),
     executablePath: await chromium.executablePath(),
     headless: chromium.headless,
     ignoreHTTPSErrors: true,
