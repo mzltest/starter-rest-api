@@ -74,7 +74,7 @@ if (!url){
 }
 console.log(exec(`bin/phantomjs bin/rasterize.js "${url}" /tmp/${filename} ${size}`).toString("utf8"))
 res.sendFile(`/tmp/${filename}`)
-console.log(exec(`rm -rf /tmp/*`).toString("utf8"))
+console.log(exec(`ls /tmp/* -l`).toString("utf8"))
 })
 
 // a b c in [0,3)
