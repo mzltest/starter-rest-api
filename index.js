@@ -69,7 +69,7 @@ width=req.body.width
 height=req.body.height
 try {
   exec('rm -rf /tmp/img-*')
-  await chromium.font('./bin/NotoSans-Regular.ttf')
+  //await chromium.font('./bin/NotoSans-Regular.ttf')
   const browser = await puppeteer.launch({
     args: chromium.args,
     defaultViewport: ((width==height==undefined)?chromium.defaultViewport:{width:width,height:height}),
