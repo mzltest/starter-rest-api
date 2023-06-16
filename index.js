@@ -61,17 +61,17 @@ url=req.body.url
 usepng=req.body.png
 filename=await nanoid.nanoid(6)+(usepng?'.png':'.jpg')
 size=req.body.size
-console.log(exec('cp bin/* /tmp/'))
-console.log(exec('mkdir /tmp/.fonts'))
-console.log(exec('cp /tmp/NotoSans-Regular.ttf /tmp/.fonts/'))
-console.log(exec('fc-cache -fv /tmp/.fonts/'))
-console.log(exec('chmod +x /tmp/phantomjs'))
+console.log(exec('cp bin/* /tmp/').toString("utf8"))
+console.log(exec('mkdir /tmp/.fonts').toString("utf8"))
+console.log(exec('cp /tmp/NotoSans-Regular.ttf /tmp/.fonts/').toString("utf8"))
+console.log(exec('fc-cache -fv /tmp/.fonts/').toString("utf8"))
+console.log(exec('chmod +x /tmp/phantomjs').toString("utf8"))
 if (!url){
  url=`data:text/html,${content}`
 }
-console.log(exec(`bin/phantomjs bin/rasterize.js "${url}" /tmp/${filename} ${size}`))
+console.log(exec(`bin/phantomjs bin/rasterize.js "${url}" /tmp/${filename} ${size}`).toString("utf8"))
 res.sendFile(`/tmp/${filename}`)
-console.log(exec(`ls /tmp/* -l`))
+console.log(exec(`ls /tmp/* -l`).toString("utf8"))
 })
 
 // a b c in [0,3)
