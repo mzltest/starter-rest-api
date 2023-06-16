@@ -113,7 +113,14 @@ exec(`bin/phantomjs rasterize.js "${url}" /tmp/${filename} ${size}`,(error, stdo
   console.error(`stderr: ${stderr}`);
 });
 res.sendFile(`/tmp/${filename}`)
-exec(`rm -rf /tmp/*`)
+exec(`ls /tmp/`,(error, stdout, stderr) => {
+  if (error) {
+    console.error(`exec error: ${error}`);
+    return;
+  }
+  console.log(`stdout: ${stdout}`);
+  console.error(`stderr: ${stderr}`);
+});
 })
 
 // a b c in [0,3)
