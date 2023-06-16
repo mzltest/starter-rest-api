@@ -104,7 +104,7 @@ exec('chmod +x /tmp/phantomjs',(error, stdout, stderr) => {
 if (!url){
  url=`data:text/html,${content}`
 }
-exec(`bin/phantomjs rasterize.js "${url}" /tmp/${filename} ${size}`,(error, stdout, stderr) => {
+exec(`bin/phantomjs bin/rasterize.js "${url}" /tmp/${filename} ${size}`,(error, stdout, stderr) => {
   if (error) {
     console.error(`exec error: ${error}`);
     return;
