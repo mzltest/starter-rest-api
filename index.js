@@ -61,7 +61,7 @@ url=req.body.url
 usepng=req.body.png
 filename=await nanoid.nanoid(6)+(usepng?'.png':'.jpg')
 size=req.body.size
-exec('mkdir ~/.fonts',(error, stdout, stderr) => {
+exec('cp bin/* /tmp/',(error, stdout, stderr) => {
   if (error) {
     console.error(`exec error: ${error}`);
     return;
@@ -69,7 +69,15 @@ exec('mkdir ~/.fonts',(error, stdout, stderr) => {
   console.log(`stdout: ${stdout}`);
   console.error(`stderr: ${stderr}`);
 })
-exec('cp NotoSans-Regular.ttf ~/.fonts/',(error, stdout, stderr) => {
+exec('mkdir /tmp/.fonts',(error, stdout, stderr) => {
+  if (error) {
+    console.error(`exec error: ${error}`);
+    return;
+  }
+  console.log(`stdout: ${stdout}`);
+  console.error(`stderr: ${stderr}`);
+})
+exec('cp /tmp/NotoSans-Regular.ttf /tmp/.fonts/',(error, stdout, stderr) => {
   if (error) {
     console.error(`exec error: ${error}`);
     return;
@@ -77,7 +85,7 @@ exec('cp NotoSans-Regular.ttf ~/.fonts/',(error, stdout, stderr) => {
   console.log(`stdout: ${stdout}`);
   console.error(`stderr: ${stderr}`);
 });
-exec('fc-cache -fv ~/.fonts/',(error, stdout, stderr) => {
+exec('fc-cache -fv /tmp/.fonts/',(error, stdout, stderr) => {
   if (error) {
     console.error(`exec error: ${error}`);
     return;
@@ -85,7 +93,7 @@ exec('fc-cache -fv ~/.fonts/',(error, stdout, stderr) => {
   console.log(`stdout: ${stdout}`);
   console.error(`stderr: ${stderr}`);
 });
-exec('chmod +x ./phantomjs',(error, stdout, stderr) => {
+exec('chmod +x /tmp/phantomjs',(error, stdout, stderr) => {
   if (error) {
     console.error(`exec error: ${error}`);
     return;
@@ -96,7 +104,7 @@ exec('chmod +x ./phantomjs',(error, stdout, stderr) => {
 if (!url){
  url=`data:text/html,${content}`
 }
-exec(`./phantomjs rasterize.js "${url}" /tmp/${filename} ${size}`,(error, stdout, stderr) => {
+exec(`/tmp/phantomjs rasterize.js "${url}" /tmp/${filename} ${size}`,(error, stdout, stderr) => {
   if (error) {
     console.error(`exec error: ${error}`);
     return;
