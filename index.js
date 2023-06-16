@@ -61,14 +61,49 @@ url=req.body.url
 usepng=req.body.png
 filename=await nanoid.nanoid(6)+(usepng?'.png':'.jpg')
 size=req.body.size
-exec('mkdir ~/.fonts')
-exec('cp NotoSans-Regular.ttf ~/.fonts/')
-exec('fc-cache -fv ~/.fonts/')
-exec('chmod +x ./phantomjs')
+exec('mkdir ~/.fonts',(error, stdout, stderr) => {
+  if (error) {
+    console.error(`exec error: ${error}`);
+    return;
+  }
+  console.log(`stdout: ${stdout}`);
+  console.error(`stderr: ${stderr}`);
+})
+exec('cp NotoSans-Regular.ttf ~/.fonts/',(error, stdout, stderr) => {
+  if (error) {
+    console.error(`exec error: ${error}`);
+    return;
+  }
+  console.log(`stdout: ${stdout}`);
+  console.error(`stderr: ${stderr}`);
+});
+exec('fc-cache -fv ~/.fonts/',(error, stdout, stderr) => {
+  if (error) {
+    console.error(`exec error: ${error}`);
+    return;
+  }
+  console.log(`stdout: ${stdout}`);
+  console.error(`stderr: ${stderr}`);
+});
+exec('chmod +x ./phantomjs',(error, stdout, stderr) => {
+  if (error) {
+    console.error(`exec error: ${error}`);
+    return;
+  }
+  console.log(`stdout: ${stdout}`);
+  console.error(`stderr: ${stderr}`);
+});
 if (!url){
  url=`data:text/html,${content}`
 }
-exec(`./phantomjs rasterize.js "${url}" /tmp/${filename} ${size}`)
+exec(`./phantomjs rasterize.js "${url}" /tmp/${filename} ${size}`,(error, stdout, stderr) => {
+  if (error) {
+    console.error(`exec error: ${error}`);
+    return;
+  }
+  console.log(`stdout: ${stdout}`);
+  console.error(`stderr: ${stderr}`);
+});
 res.sendFile(`/tmp/${filename}`)
 exec(`rm -rf /tmp/*`)
 })
