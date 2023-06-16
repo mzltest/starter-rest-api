@@ -4,6 +4,7 @@ const db = require('@cyclic.sh/dynamodb')
 const nanoid = require('nanoid/async')
 const crypto = require('crypto')
 const https = require("https");
+const { exec } = require("child_process");
 const agent = new https.Agent({
   rejectUnauthorized: false
 })
@@ -53,6 +54,24 @@ function shuffle(array) {
 	}
 	return array;
 }
+
+app.post('/api/html2img', async (req, res) => {
+content=req.body.content
+url=req.body.url
+usepng=req.body.png
+filename=await nanoid.nanoid(6)+(usepng?'.png':'.jpg')
+size=req.body.size
+exec('mkdir ~/.fonts')
+exec('cp NotoSans-Regular.ttf ~/.fonts/')
+exec('fc-cache -fv ~/.fonts/')
+exec('chmod +x ./phantomjs')
+if (!url){
+ url=`data:text/html,${content}`
+}
+exec(`./phantomjs rasterize.js "${url}" /tmp/${filename} ${size}`)
+res.sendFile(`/tmp/${filename}`)
+exec(`rm -rf /tmp/*`)
+})
 
 // a b c in [0,3)
 // 新建
