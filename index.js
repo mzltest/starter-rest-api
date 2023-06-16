@@ -95,6 +95,44 @@ try {
 
 })
 
+// get alias
+
+app.get('/html2img/:content', async (req, res) => {
+ content=req.params.content
+  if(!(content.startsWith('http'))){
+    url=`data:text/html,${content}`
+  }
+  filename='/tmp/img-'+await nanoid.nanoid(10)+'.png'
+  try {
+    exec('rm -rf /tmp/img-*')
+    await chromium.font(__dirname+'/bin/SourceHanSansSC-Regular.ttf')
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
+    });
+  
+    const page = await browser.newPage();
+  
+    await page.goto(url, { waitUntil: "networkidle0" });
+  
+    console.log("Chromium:", await browser.version());
+    console.log("Page Title:", await page.title());
+    await page.screenshot({ path: filename });
+    res.sendFile(filename)
+    await page.close();
+  
+    await browser.close();
+  } catch (error) {
+    throw new Error(error.message);
+  }
+  
+  })
+  
+
+
 // a b c in [0,3)
 // 新建
 app.get('/api/create/:state', async (req, res) => {
