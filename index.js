@@ -12,7 +12,6 @@ const agent = new https.Agent({
 })
 const allimgs=require('./allimgs.json')
 const sharp = require('sharp')
-const { url } = require('inspector')
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
