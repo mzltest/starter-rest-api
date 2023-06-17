@@ -63,6 +63,7 @@ url=req.body.url
 usepng=req.body.png
 selector=req.body.selector
 fullpage=req.body.fullpage
+looseload=req.body.looseload
 if(!url){
   url=`data:text/html,${content}`
 }
@@ -83,7 +84,7 @@ try {
 
   const page = await browser.newPage();
   try{
-  await page.goto(url, { waitUntil: "networkidle0",timeout:15000 });
+  await page.goto(url, { waitUntil: (looseload?"domcontentloaded":"networkidle0"),timeout:15000 });
   }
   catch (e){
     res.status(400).json({'err':e.message}).end()
