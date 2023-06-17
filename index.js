@@ -89,28 +89,23 @@ try {
     try{
       await page.goto(url);
       const el = await page.waitForSelector(selector,{timeout:20000})
+      await el.screenshot({
+        path: filename
+      })
+      res.sendFile(filename)
+      await page.close();
+    
+      await browser.close();
+      return
       }
       catch (e){
         res.status(400).json({'err':e.message}).end()
           return
       }
     
+    
 
-    if (!el) {
-      res.status(404).json({'err':`Element with selector ${selector} not found on page ${url}`}).end()
-      return
-        
-      
-    }
 
-    await el.screenshot({
-      path: filename
-    })
-    res.sendFile(filename)
-    await page.close();
-  
-    await browser.close();
-    return
   } 
 
   try{
