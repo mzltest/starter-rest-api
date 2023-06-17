@@ -73,9 +73,7 @@
       })
       .then(function(blob) {
         var imageUrl = URL.createObjectURL(blob);
-        var img = document.createElement('img');
-        img.src = imageUrl;
-        document.getElementById('result').innerHTML=img;
+        document.getElementById('result').innerHTML=`<img src="${imageUrl}" />`;
         document.getElementById("submit").hidden=false
       })
       .catch(function(error) {
