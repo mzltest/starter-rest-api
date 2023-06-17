@@ -83,15 +83,18 @@ try {
   });
 
   const page = await browser.newPage();
-  try{
-  await page.goto(url, { waitUntil: (looseload?"domcontentloaded":"networkidle0"),timeout:20000 });
-  }
-  catch (e){
-    res.status(400).json({'err':e.message}).end()
-      return
-  }
+
   if (selector) {
-    const el = await page.$(selector)
+    //selector 等待元素载入因此不在goto做超时
+    try{
+      await page.goto(url);
+      const el = await page.waitForSelector(selector,{timeout:20000})
+      }
+      catch (e){
+        res.status(400).json({'err':e.message}).end()
+          return
+      }
+    
 
     if (!el) {
       res.status(404).json({'err':`Element with selector ${selector} not found on page ${url}`}).end()
@@ -110,6 +113,14 @@ try {
     return
   } 
 
+  try{
+  await page.goto(url, { waitUntil: (looseload?"domcontentloaded":"networkidle0"),timeout:20000 });
+  }
+  catch (e){
+    res.status(400).json({'err':e.message}).end()
+      return
+  }
+ 
   console.log("Chromium:", await browser.version());
   console.log("Page Title:", await page.title());
   await page.screenshot({ path: filename ,fullPage:Boolean(fullpage)});
