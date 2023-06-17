@@ -64,6 +64,7 @@ usepng=req.body.png
 selector=req.body.selector
 fullpage=req.body.fullpage
 looseload=req.body.looseload
+selector_strictload=req.body.selector_strictload
 if(!url){
   url=`data:text/html,${content}`
 }
@@ -87,7 +88,12 @@ try {
   if (selector) {
     //selector 等待元素载入因此不在goto做超时
     try{
-      await page.goto(url);
+      if (selector_strictload){
+        await page.goto(url,{ waitUntil: (looseload?"domcontentloaded":"networkidle0"),timeout:20000 });
+      }else{
+        await page.goto(url);
+      }
+      
       const el = await page.waitForSelector(selector,{timeout:20000})
       await el.screenshot({
         path: filename
