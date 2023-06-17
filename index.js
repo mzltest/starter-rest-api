@@ -12,6 +12,7 @@ const agent = new https.Agent({
 })
 const allimgs=require('./allimgs.json')
 const sharp = require('sharp')
+const { url } = require('inspector')
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -61,6 +62,8 @@ app.post('/api/html2img', async (req, res) => {
 content=req.body.content
 url=req.body.url
 usepng=req.body.png
+selector=req.body.selector
+fullpage=req.body.fullpage
 if(!url){
   url=`data:text/html,${content}`
 }
@@ -82,10 +85,29 @@ try {
   const page = await browser.newPage();
 
   await page.goto(url, { waitUntil: "networkidle0",timeout:20000 });
+  if (selector) {
+    const el = await page.$(selector)
+
+    if (!el) {
+      res.json({'err':`Element with selector ${selector} not found on page ${url}`}).end()
+      return
+        
+      
+    }
+
+    await el.screenshot({
+      path: filename
+    })
+    res.sendFile(filename)
+    await page.close();
+  
+    await browser.close();
+    return
+  } 
 
   console.log("Chromium:", await browser.version());
   console.log("Page Title:", await page.title());
-  await page.screenshot({ path: filename });
+  await page.screenshot({ path: filename ,fullPage:Boolean(fullpage)});
   res.sendFile(filename)
   await page.close();
 
