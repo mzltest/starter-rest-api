@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+ 
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>html2img API Demo</title>
 </head>
 <body>
@@ -49,8 +52,8 @@
       var data = {
         url: document.getElementById('url').value,
         content: document.getElementById('content').value,
-        width: parseInt(document.getElementById('width').value),
-        height: parseInt(document.getElementById('height').value),
+        width: parseInt(document.getElementById('width').value)||null,
+        height: parseInt(document.getElementById('height').value)||null,
         fullpage: document.getElementById('fullpage').checked,
         format: document.getElementById('format').value,
         looseload: document.getElementById('looseload').checked,
@@ -72,7 +75,7 @@
         var imageUrl = URL.createObjectURL(blob);
         var img = document.createElement('img');
         img.src = imageUrl;
-        document.getElementById('result').appendChild(img);
+        document.getElementById('result').innerHTML(img);
       })
       .catch(function(error) {
         console.error(error);
