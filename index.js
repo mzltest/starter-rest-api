@@ -89,7 +89,7 @@ try {
     //selector 等待元素载入因此不在goto做超时
     try{
       if (selector_strictload){
-        await page.goto(url,{ waitUntil: (looseload?"domcontentloaded":"networkidle0"),timeout:20000 });
+        await page.goto(url,{ waitUntil: ("networkidle0"),timeout:20000 });
       }else{
         await page.goto(url);
       }
