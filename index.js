@@ -81,7 +81,7 @@ try {
 
   const page = await browser.newPage();
 
-  await page.goto(url, { waitUntil: "networkidle0" });
+  await page.goto(url, { waitUntil: "networkidle0",timeout:20000 });
 
   console.log("Chromium:", await browser.version());
   console.log("Page Title:", await page.title());
