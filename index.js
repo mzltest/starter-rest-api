@@ -83,12 +83,12 @@ try {
 
   const page = await browser.newPage();
 
-  await page.goto(url, { waitUntil: "networkidle0",timeout:20000 });
+  await page.goto(url, { waitUntil: "networkidle0",timeout:15000 });
   if (selector) {
     const el = await page.$(selector)
 
     if (!el) {
-      res.json({'err':`Element with selector ${selector} not found on page ${url}`}).end()
+      res.status(404).json({'err':`Element with selector ${selector} not found on page ${url}`}).end()
       return
         
       
