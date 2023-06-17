@@ -67,7 +67,7 @@ looseload=req.body.looseload
 if(!url){
   url=`data:text/html,${content}`
 }
-filename='/tmp/img-'+await nanoid.nanoid(10)+(usepng?'.png':'.jpg')
+filename='/tmp/img-'+'out'+(usepng?'.png':'.jpg')
 width=req.body.width
 height=req.body.height
 try {
