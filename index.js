@@ -84,7 +84,7 @@ try {
 
   const page = await browser.newPage();
   try{
-  await page.goto(url, { waitUntil: (looseload?"domcontentloaded":"networkidle0"),timeout:15000 });
+  await page.goto(url, { waitUntil: (looseload?"domcontentloaded":"networkidle0"),timeout:20000 });
   }
   catch (e){
     res.status(400).json({'err':e.message}).end()
