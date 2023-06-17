@@ -40,7 +40,7 @@
     <input type="checkbox" id="selector_strictload" name="selector_strictload">
     <label for="selector_strictload">对于选择器要求networkIdle0后再寻找</label><br><br>
     
-    <button type="submit">生成图片</button>
+    <button type="submit" id="submit">生成图片</button>
   </form>
   
   <div id="result"></div>
@@ -48,7 +48,7 @@
   <script>
     document.getElementById('html2imgForm').addEventListener('submit', function(event) {
       event.preventDefault();
-      
+      document.getElementById("submit").hidden=true
       var data = {
         url: document.getElementById('url').value,
         content: document.getElementById('content').value,
@@ -75,11 +75,13 @@
         var imageUrl = URL.createObjectURL(blob);
         var img = document.createElement('img');
         img.src = imageUrl;
-        document.getElementById('result').innerHTML(img);
+        document.getElementById('result').innerHTML=img;
+        document.getElementById("submit").hidden=false
       })
       .catch(function(error) {
         console.error(error);
         document.getElementById('result').textContent = 'An error occurred while generating the image.';
+        document.getElementById("submit").hidden=false
       });
     });
   </script>
