@@ -23,7 +23,7 @@ var options = {
   dotfiles: 'ignore',
   etag: true,
   extensions: ['htm', 'html','css','js','ico','jpg','jpeg','png','svg'],
-  index: ['index.html','html2img.html'],
+  index: ['index.html'],
   maxAge: '30d',
   redirect: false
 }
