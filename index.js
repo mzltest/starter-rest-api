@@ -13,7 +13,7 @@ const agent = new https.Agent({
 const allimgs=require('./allimgs.json')
 const sharp = require('sharp')
 
-app.use(express.json())
+app.use(express.json({limit:'10MB'}))
 app.use(express.urlencoded({ extended: true }))
 
 // #############################################################################
